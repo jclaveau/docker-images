@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Renovate will update this
 ARG DOCKER_VERSION=27.4.0
 ARG DOCKER_COMPOSE_VERSION=2.30.3
 
-LABEL maintainer="your-email@example.com"
-LABEL org.opencontainers.image.source="https://github.com/yourusername/docker-images"
-LABEL org.opencontainers.image.description="Ubuntu base image with Docker-in-Docker support"
+# LABEL maintainer="your-email@example.com"
+# LABEL org.opencontainers.image.source="https://github.com/yourusername/docker-images"
+# LABEL org.opencontainers.image.description="Ubuntu base image with Docker-in-Docker support"
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -44,6 +44,7 @@ RUN mkdir -p /etc/docker && \
 # Setup entrypoint for DinD
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
 
 VOLUME /var/lib/docker
 
