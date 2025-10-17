@@ -2,8 +2,8 @@
 FROM ubuntu:24.04
 
 # Renovate will update this
-ARG DOCKER_VERSION=27.4.0
-ARG DOCKER_COMPOSE_VERSION=2.30.3
+ARG DOCKER_VERSION=28.5.1
+ARG DOCKER_COMPOSE_VERSION=2.39.4
 
 # LABEL maintainer="your-email@example.com"
 # LABEL org.opencontainers.image.source="https://github.com/yourusername/docker-images"
@@ -12,7 +12,7 @@ ARG DOCKER_COMPOSE_VERSION=2.30.3
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
+# Install dependencies & basic tools
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
@@ -21,7 +21,12 @@ RUN apt-get update && apt-get install -y \
     iptables \
     supervisor \
     git \
+    net-tools \
+    iputils-ping \
+    nano \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Install Docker
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
