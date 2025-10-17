@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ubuntu"],
+      "groupName": "Ubuntu base image"
+    },
+    {
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["docker/compose"],
+      "groupName": "Docker Compose"
+    },
+    {
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["playwright"],
+      "groupName": "Playwright"
+    },
+    {
+      "matchDatasources": ["node-version"],
+      "matchPackageNames": ["node"],
+      "groupName": "Node.js"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^base/Dockerfile$"],
+      "matchStrings": [
+        "ARG DOCKER_VERSION=(?.*?)\\n",
+        "ARG DOCKER_COMPOSE_VERSION=(?.*?)\\n"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "docker/compose",
+      "versioningTemplate": "semver"
+    },
+    {
+      "fileMatch": ["^playwright/Dockerfile$"],
+      "matchStrings": [
+        "ARG NODE_VERSION=(?.*?)\\n"
+      ],
+      "datasourceTemplate": "node-version",
+      "depNameTemplate": "node",
+      "versioningTemplate": "node"
+    },
+    {
+      "fileMatch": ["^playwright/Dockerfile$"],
+      "matchStrings": [
+        "ARG PLAYWRIGHT_VERSION=(?.*?)\\n"
+      ],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "playwright",
+      "versioningTemplate": "npm"
+    }
+  ],
+  "schedule": [
+    "before 6am on Monday"
+  ],
+  "automerge": false,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 5
+}
