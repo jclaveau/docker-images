@@ -1,0 +1,18 @@
+name: Dump Github Ubuntu context
+
+on:
+  push:
+
+# env:
+
+jobs:
+  build-base:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: sudo cat /etc/passwd
+      - run: pwd
+      - run: id -u
+      - run: id -g
+      - run: env
+
