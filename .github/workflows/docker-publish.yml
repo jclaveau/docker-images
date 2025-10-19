@@ -2,17 +2,21 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'base/**'
-      - 'playwright/**'
-      - '.github/workflows/docker-publish.yml'
+    # branches: [ main ]
+    # paths:
+    #   - 'base/**'
+    #   - 'playwright/**'
+    #   - '.github/workflows/docker-publish.yml'
   pull_request:
     branches: [ main ]
-  schedule:
-    # Run weekly to get security updates
-    - cron: '0 0 * * 0'
-  workflow_dispatch:
+  # schedule:
+  #   # Run weekly to get security updates
+  #   - cron: '0 0 * * 0'
+  # workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: docker.io
@@ -20,8 +24,31 @@ env:
   PLAYWRIGHT_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/playwright-dind
 
 jobs:
+  github-context:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_group_id: ${{ steps.extract_docker_group_id.outputs.docker_group_id }}
+    steps:
+      # for debug only
+      - run: sudo cat /etc/passwd
+      - run: sudo cat /etc/group
+      - run: pwd
+      - run: whoami
+      - run: id -u
+      - run: id -g
+      - run: groups runner
+      - run: ls -l /home/runner
+      - run: env
+
+      - uses: actions/checkout@v4
+
+      # used later
+      - id: extract_docker_group_id
+        run: 'echo "docker_group_id=$(getent group docker | cut -d: -f3)" >> "$GITHUB_OUTPUT"'
+
   build-base:
     runs-on: ubuntu-latest
+    needs: github-context
     permissions:
       contents: read
       packages: write
@@ -32,6 +59,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -53,16 +82,61 @@ jobs:
       - name: Build and push base image
         uses: docker/build-push-action@v5
         with:
+          build-args: |
+            DOCKER_GROUP_ID=${{ needs.github-context.outputs.docker_group_id }}
           context: ./base
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:buildcache,mode=max
+          cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:buildcache,mode=max # https://www.blacksmith.sh/blog/cache-is-king-a-guide-for-docker-layer-caching-in-github-actions
+
+      - run: sleep 3 # Ensure the image is updated on Docker side before pulling it
+
+  test-postgres:
+    runs-on: ubuntu-latest
+    needs: build-base
+    timeout-minutes: 5
+    container:
+      # https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/run-jobs-in-a-container
+      image: jclaveau/playwright-dind:latest
+      options: >-
+        --privileged
+        --add-host=host.docker.internal:host-gateway
+        --security-opt seccomp=unconfined
+        --security-opt apparmor=unconfined
+        --env "PWD=/home/runner/work/docker-images/docker-images"
+      # --network and --entrypoint are overwritten and not supported
+      # --workdir also and must be specified with --env (using steps working-directory doesn't work with mounted dirs)
+      volumes:
+        - /home/runner:/home/runner # TODO move it to Dockerfile
+    steps:
+      - run: pwd
+      - run: whoami
+      - run: id -u
+      - run: groups runner
+
+      - run: cat /etc/hosts
+      - run: cat /etc/passwd
+      - run: cat /etc/group
+      - run: ls -l /home/runner
+      - run: ls -l /__w
+
+      - uses: actions/checkout@v4
+
+      - name: Creating DB volume (as locally)
+        run: |
+          sudo mkdir -p -m 777 ./docker/volumes/postgres_15
+          sudo chown -R 1000:1000 ./docker/volumes/postgres_15/
+
+      - run: ls -l
+
+      - run: docker compose -f ./docker-compose-tests.yaml up -d --wait
+
 
   build-playwright:
     runs-on: ubuntu-latest
-    needs: build-base
+    needs: test-postgres
     permissions:
       contents: read
       packages: write
@@ -73,6 +147,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -102,3 +178,5 @@ jobs:
             BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.PLAYWRIGHT_IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.PLAYWRIGHT_IMAGE_NAME }}:buildcache,mode=max
+
+

@@ -1,0 +1,23 @@
+networks:
+  tests-network:
+
+services:
+  postgres:
+    container_name: postgres
+    image: timescale/timescaledb-ha:pg15
+    ports:
+      - 5432:5432
+    volumes:
+      # - /home/runner/docker/volumes/postgres_15:/home/postgres/pgdata/data
+      - ./docker/volumes/postgres_15:/home/postgres/pgdata
+    networks:
+      - tests-network
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    healthcheck:
+      test: pg_isready -U postgres -d postgres
+      interval: 3s
+      timeout: 0s
+      retries: 30

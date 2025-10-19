@@ -13,7 +13,7 @@ ARG PLAYWRIGHT_VERSION=1.48.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION%%.*}.x | bash - \
+RUN sudo curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION%%.*}.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
@@ -21,14 +21,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION%%.*}.x | bash - \
 ENV PNPM_HOME="/root/.local/share/pnpm"
 ENV PATH="${PATH}:${PNPM_HOME}"
 
-RUN npm install -g pnpm
+RUN sudo npm install -g pnpm
+
+# Install Playwright globally https://playwright.dev/docs/docker#build-your-own-image
+# RUN sudo pnpm install -g playwright@${PLAYWRIGHT_VERSION} --with-deps
+
+
 
 # Install Playwright globally
 RUN pnpm install -g playwright@${PLAYWRIGHT_VERSION}
 RUN playwright install-deps && playwright install --with-deps
 
-# Set up working directory
-WORKDIR /workspace
 
 # Verify installations
 RUN node --version \
@@ -36,5 +39,10 @@ RUN node --version \
     && pnpm --version \
     && playwright --version \
     && docker --version
+
+# Switch to runner user by default
+# TODO move it to base if possible
+USER runner
+# WORKDIR /home/runner
 
 CMD ["bash"]
