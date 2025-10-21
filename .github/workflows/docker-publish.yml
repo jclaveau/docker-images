@@ -105,7 +105,7 @@ jobs:
         --add-host=host.docker.internal:host-gateway
         --security-opt seccomp=unconfined
         --security-opt apparmor=unconfined
-      # --env "PWD=/home/runner/work/docker-images/docker-images"
+        --env "PWD=/home/runner/work/docker-images/docker-images"
       # --network and --entrypoint are overwritten and not supported
       # --workdir also and must be specified with --env (using steps working-directory doesn't work with mounted dirs)
       # volumes:
@@ -131,13 +131,15 @@ jobs:
 
       - run: ls -l
 
-      - run: docker compose -f ./docker-compose-tests.yaml logs --follow > docker-compose.logs &
+      # this doesn't work https://github.com/docker/compose/issues/9122
+      # - run: docker compose -f ./docker-compose-tests.yaml logs --follow > docker-compose.logs &
 
+      # /!\ THIS VALIDATES WHEN FAILING
       - run: docker compose -f ./docker-compose-tests.yaml up
       # - run: docker compose -f ./docker-compose-tests.yaml up -d --wait
 
-      - run: cat docker-compose.logs
-        if: always()
+      # - run: cat docker-compose.logs
+      #   if: always()
 
 
   build-playwright:

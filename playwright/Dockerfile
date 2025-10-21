@@ -39,7 +39,7 @@ RUN node --version \
     && docker --version
 
 # Switch to runner user by default
-# TODO move it to base if possible
-# USER runner
+# TODO move it to base if possible?
+USER runner
 
 CMD ["bash"]
