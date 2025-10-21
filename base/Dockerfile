@@ -16,6 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies & basic tools
 RUN apt-get update && apt-get install -y \
+    apt-utils \
     ca-certificates \
     curl \
     gnupg \
@@ -25,8 +26,10 @@ RUN apt-get update && apt-get install -y \
     git \
     net-tools \
     iputils-ping \
-    nano \
+    netcat-traditional \
+    netcat-openbsd \
     sudo \
+    apt-file \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -72,7 +75,7 @@ RUN mkdir -p /etc/docker && \
 
 VOLUME /var/lib/docker
 
-RUN cat /etc/group
+RUN ls /usr/bin
 
 
 RUN usermod -aG docker packer && \
@@ -82,5 +85,7 @@ RUN usermod -aG docker packer && \
 # COPY entrypoint.sh /usr/local/bin/
 # RUN chmod +x /usr/local/bin/entrypoint.sh
 # ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]  # This will be overridden by Github
+
+USER runner
 
 CMD ["cd", "$PWD"]
