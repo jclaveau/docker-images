@@ -45,7 +45,7 @@ RUN useradd -m -s /bin/bash -u 1001 -c ",,," runner && \
     chmod 0440 /etc/sudoers.d/runner
 
 # WORKDIR /home/runner # This will be overridden by Github
-VOLUME /home/runner:/home/runner
+# VOLUME /home/runner:/home/runner # This doesn't seem to work
 
 
 # Use the same group id as in Github's ubuntu-latest https://github.com/jclaveau/docker-images/actions/runs/18673089597/job/53237768539
@@ -84,4 +84,4 @@ RUN usermod -aG docker packer && \
 # RUN chmod +x /usr/local/bin/entrypoint.sh
 # ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]  # This will be overridden by Github
 
-CMD ["cd", "$PWD"]
+# CMD ["cd", "$PWD"]

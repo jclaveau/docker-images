@@ -26,8 +26,6 @@ RUN sudo npm install -g pnpm
 # Install Playwright globally https://playwright.dev/docs/docker#build-your-own-image
 # RUN sudo pnpm install -g playwright@${PLAYWRIGHT_VERSION} --with-deps
 
-
-
 # Install Playwright globally
 RUN pnpm install -g playwright@${PLAYWRIGHT_VERSION}
 RUN playwright install-deps && playwright install --with-deps
@@ -42,7 +40,6 @@ RUN node --version \
 
 # Switch to runner user by default
 # TODO move it to base if possible
-USER runner
-# WORKDIR /home/runner
+# USER runner
 
 CMD ["bash"]
