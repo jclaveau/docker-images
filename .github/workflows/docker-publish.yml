@@ -103,7 +103,7 @@ jobs:
       options: >-
         --privileged
         --add-host=host.docker.internal:host-gateway
-        --env "PWD=/home/runner/work/docker-images/docker-images"
+        --env "PWD=${{ github.workspace }}"
       # --network and --entrypoint are overwritten and not supported
       # --workdir also and must be specified with --env (using steps working-directory doesn't work with mounted dirs)
       # --security-opt seccomp=unconfined
@@ -201,7 +201,7 @@ jobs:
       options: >-
         --privileged
         --add-host=host.docker.internal:host-gateway
-        --env "PWD=/home/runner/work/docker-images/docker-images"
+        --env "PWD=${{ github.workspace }}"
       volumes:
         - /home/runner:/home/runner
     steps:
