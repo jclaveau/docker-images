@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     netcat-traditional \
     netcat-openbsd \
     sudo \
+    wget \
     apt-file \
     && rm -rf /var/lib/apt/lists/*
 

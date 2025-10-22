@@ -109,7 +109,7 @@ jobs:
       # --security-opt seccomp=unconfined
       # --security-opt apparmor=unconfined
       volumes:
-        - /home/runner:/home/runner
+        - /home/runner/work:/home/runner/work
     steps:
       - run: docker inspect $(hostname)
 
@@ -147,7 +147,8 @@ jobs:
 
   build-playwright:
     runs-on: ubuntu-latest
-    needs: test-postgres-on-base
+    needs: build-base
+    # needs: test-postgres-on-base
     permissions:
       contents: read
       packages: write
@@ -203,7 +204,7 @@ jobs:
         --add-host=host.docker.internal:host-gateway
         --env "PWD=${{ github.workspace }}"
       volumes:
-        - /home/runner:/home/runner
+        - /home/runner/work:/home/runner/work
     steps:
       - run: docker inspect $(hostname)
 
@@ -232,3 +233,35 @@ jobs:
 
       - run: sudo nc -zv host.docker.internal 5432
 
+
+  test-playwright-use:
+    runs-on: ubuntu-latest
+    needs: build-playwright
+    timeout-minutes: 5
+    container:
+      image: jclaveau/playwright-dind:latest
+      options: >-
+        --privileged
+        --add-host=host.docker.internal:host-gateway
+        --env "PWD=${{ github.workspace }}"
+        --env "HOME=/home/runner"
+      volumes:
+        - /home/runner/work:/home/runner/work
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: pwd
+      - run: whoami
+      - run: ls -al
+
+      - run: pnpm playwright --version
+        working-directory: playwright
+
+      - run: pnpm playwright install --help
+        working-directory: playwright
+
+      - run: pnpm install
+        working-directory: playwright
+
+      - run: pnpm playwright test
+        working-directory: playwright
