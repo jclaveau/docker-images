@@ -3,8 +3,8 @@ ARG BASE_IMAGE=jclaveau/ubuntu-dind:latest
 FROM ${BASE_IMAGE}
 
 # Renovate will update these
-ARG NODE_VERSION=20.18.1
-ARG PLAYWRIGHT_VERSION=1.48.2
+ARG NODE_VERSION=22.12.0
+ARG PLAYWRIGHT_VERSION=1.50.1
 
 # LABEL maintainer="your-email@example.com"
 # LABEL org.opencontainers.image.source="https://github.com/yourusername/docker-images"
